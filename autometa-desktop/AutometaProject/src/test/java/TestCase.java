@@ -11,13 +11,6 @@ public class TestCase {
         driver.manage().window().maximize();
         driver.get("YOUR_URL_HERE");
 
-
-        driver.findElement(By.cssSelector("#usernam")).click();
-
-        driver.findElement(By.cssSelector("#pasword")).click();
-
-        driver.findElement(By.cssSelector("#btnlogin")).click();
-
         driver.findElement(By.cssSelector("span.title")).click();
 
         driver.findElement(By.cssSelector("a.ajax-link")).click();
@@ -32,7 +25,9 @@ public class TestCase {
 
         driver.findElement(By.cssSelector("#add")).click();
 
-        driver.findElement(By.cssSelector("#modal-lg")).click();
+        driver.findElement(By.cssSelector("#btnSave")).click();
+
+        driver.findElement(By.cssSelector("button.swal-button.swal-button--confirm")).click();
 
         driver.quit();
     }

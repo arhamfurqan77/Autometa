@@ -28,7 +28,7 @@ function createMainWindow() {
 
   ipcMain.on("save-recording", () => {
     saveRecording();
-    generateJavaFile();
+    generateMavenProject();
   });
 
   mainWindow.loadFile("index.html");
@@ -93,13 +93,52 @@ function saveRecording() {
   console.log("Recording saved to:", filePath);
 }
 
-function generateJavaFile() {
-  const outputDir = path.join(__dirname, "generated");
+function generateMavenProject() {
+  const projectRoot = path.join(__dirname, "AutometaProject");
+  const srcDir = path.join(projectRoot, "src", "test", "java");
 
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
+  // Create folders
+  fs.mkdirSync(srcDir, { recursive: true });
 
+  // ----------- Generate pom.xml -----------
+  const pomContent = `
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.autometa</groupId>
+  <artifactId>autometa-project</artifactId>
+  <version>1.0-SNAPSHOT</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.seleniumhq.selenium</groupId>
+      <artifactId>selenium-java</artifactId>
+      <version>4.17.0</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.8.1</version>
+        <configuration>
+          <source>17</source>
+          <target>17</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+`;
+
+  fs.writeFileSync(path.join(projectRoot, "pom.xml"), pomContent);
+
+  // ----------- Generate TestCase.java -----------
   let javaCode = `
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -112,7 +151,6 @@ public class TestCase {
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get("YOUR_URL_HERE");
-
 `;
 
   recordedActions.forEach((action) => {
@@ -129,10 +167,9 @@ public class TestCase {
 }
 `;
 
-  const filePath = path.join(outputDir, "TestCase.java");
-  fs.writeFileSync(filePath, javaCode);
+  fs.writeFileSync(path.join(srcDir, "TestCase.java"), javaCode);
 
-  console.log("Java file generated at:", filePath);
+  console.log("Maven project generated at:", projectRoot);
 }
 
 app.whenReady().then(createMainWindow);

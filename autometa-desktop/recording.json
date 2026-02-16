@@ -1,33 +1,6 @@
 [
   {
     "action": "click",
-    "tag": "INPUT",
-    "id": "usernam",
-    "class": "form-control",
-    "name": null,
-    "text": null,
-    "css": "#usernam"
-  },
-  {
-    "action": "click",
-    "tag": "INPUT",
-    "id": "pasword",
-    "class": "form-control",
-    "name": null,
-    "text": null,
-    "css": "#pasword"
-  },
-  {
-    "action": "click",
-    "tag": "BUTTON",
-    "id": "btnlogin",
-    "class": "btn btn-info",
-    "name": null,
-    "text": "Login",
-    "css": "#btnlogin"
-  },
-  {
-    "action": "click",
     "tag": "SPAN",
     "id": null,
     "class": "title",
@@ -91,11 +64,20 @@
   },
   {
     "action": "click",
-    "tag": "DIV",
-    "id": "modal-lg",
-    "class": "modal fade",
+    "tag": "BUTTON",
+    "id": "btnSave",
+    "class": "btn btn-primary",
     "name": null,
-    "text": "Operators Details\nName\nCell/Phone #\nCnic\nAddress\nJoining date\nSalary\nstatus\nActivated\nDeactivated\nLeaving Date\nSubmit",
-    "css": "#modal-lg"
+    "text": "Submit",
+    "css": "#btnSave"
+  },
+  {
+    "action": "click",
+    "tag": "BUTTON",
+    "id": null,
+    "class": "swal-button swal-button--confirm",
+    "name": null,
+    "text": "OK",
+    "css": "button.swal-button.swal-button--confirm"
   }
 ]
