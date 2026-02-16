@@ -70,29 +70,44 @@ function openTargetWindow(url) {
 
 function injectRecorder() {
   targetWindow.webContents.executeJavaScript(`
+
+    let lastElement = null;
+
+    const allowedTags = ["BUTTON", "A", "INPUT", "SELECT", "TEXTAREA"];
+
+    function getBestLocator(el) {
+
+      if (el.id && el.id.trim() !== "") {
+        return { type: "css", value: "#" + el.id };
+      }
+
+      if (el.name && el.name.trim() !== "") {
+        return { 
+          type: "css", 
+          value: el.tagName.toLowerCase() + "[name='" + el.name + "']" 
+        };
+      }
+
+      if (el.innerText && el.innerText.trim().length > 0 && el.innerText.length < 40) {
+        return { 
+          type: "xpath", 
+          value: "//" + el.tagName.toLowerCase() + "[contains(text(),'" + el.innerText.trim() + "')]" 
+        };
+      }
+
+      return null;
+    }
+
+    // -------- CLICK LISTENER --------
     document.addEventListener("click", function(e) {
 
-      const element = e.target;
+      let element = e.target.closest("button, a, input, select, textarea");
+      if (!element) return;
 
-      function getBestLocator(el) {
+      if (!allowedTags.includes(element.tagName)) return;
 
-        if (el.id && el.id.trim() !== "") {
-          return { type: "css", value: "#" + el.id };
-        }
-
-        if (el.name && el.name.trim() !== "") {
-          return { type: "css", value: el.tagName.toLowerCase() + "[name='" + el.name + "']" };
-        }
-
-        if (el.innerText && el.innerText.trim().length > 0 && el.innerText.length < 40) {
-          return { 
-            type: "xpath", 
-            value: "//" + el.tagName.toLowerCase() + "[contains(text(),'" + el.innerText.trim() + "')]" 
-          };
-        }
-
-        return null;
-      }
+      if (element === lastElement) return;
+      lastElement = element;
 
       const locator = getBestLocator(element);
       if (!locator) return;
@@ -105,6 +120,35 @@ function injectRecorder() {
 
       window.postMessage({ type: "AUTOMETA_RECORD", payload: data }, "*");
     });
+
+    // -------- INPUT LISTENER (SMART) --------
+let typingTimeout = null;
+
+document.addEventListener("input", function(e) {
+
+  let element = e.target;
+  if (!["INPUT", "TEXTAREA"].includes(element.tagName)) return;
+
+  const locator = getBestLocator(element);
+  if (!locator) return;
+
+  clearTimeout(typingTimeout);
+
+  typingTimeout = setTimeout(() => {
+
+    const data = {
+      action: "type",
+      locatorType: locator.type,
+      locatorValue: locator.value,
+      value: element.value
+    };
+
+    window.postMessage({ type: "AUTOMETA_RECORD", payload: data }, "*");
+
+  }, 600); // waits 600ms after user stops typing
+
+});
+
   `);
 }
 
@@ -182,13 +226,25 @@ public class TestCase {
   recordedActions.forEach((action) => {
     if (action.action === "click") {
       javaCode += `
-               wait.until(ExpectedConditions.elementToBeClickable(
-           ${
-             action.locatorType === "xpath"
-               ? `By.xpath("${action.locatorValue}")`
-               : `By.cssSelector("${action.locatorValue}")`
-           }
+        wait.until(ExpectedConditions.elementToBeClickable(
+            ${
+              action.locatorType === "xpath"
+                ? `By.xpath("${action.locatorValue}")`
+                : `By.cssSelector("${action.locatorValue}")`
+            }
         )).click();
+`;
+    }
+
+    if (action.action === "type") {
+      javaCode += `
+        wait.until(ExpectedConditions.visibilityOfElementLocated(
+            ${
+              action.locatorType === "xpath"
+                ? `By.xpath("${action.locatorValue}")`
+                : `By.cssSelector("${action.locatorValue}")`
+            }
+        )).sendKeys("${action.value}");
 `;
     }
   });
