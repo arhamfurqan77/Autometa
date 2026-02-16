@@ -5,6 +5,7 @@ const fs = require("fs");
 let mainWindow;
 let targetWindow;
 let recordedActions = [];
+let recordedUrl = "";
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -18,6 +19,8 @@ function createMainWindow() {
   });
 
   ipcMain.on("open-site", (event, url) => {
+    recordedActions = [];
+    recordedUrl = url;
     openTargetWindow(url);
   });
 
@@ -29,6 +32,12 @@ function createMainWindow() {
   ipcMain.on("save-recording", () => {
     saveRecording();
     generateMavenProject();
+
+    if (targetWindow && !targetWindow.isDestroyed()) {
+      targetWindow.close();
+    }
+
+    mainWindow.webContents.send("recording-saved");
   });
 
   mainWindow.loadFile("index.html");
@@ -61,25 +70,37 @@ function openTargetWindow(url) {
 
 function injectRecorder() {
   targetWindow.webContents.executeJavaScript(`
-  document.addEventListener("click", function(e) {
+    document.addEventListener("click", function(e) {
+
       const element = e.target;
 
-    function getCssSelector(el) {
-      if (el.id) return "#" + el.id;
-      if (el.className)
-        return el.tagName.toLowerCase() + "." +
-               el.className.split(" ").join(".");
-      return el.tagName.toLowerCase();
-    }
+      function getBestLocator(el) {
+
+        if (el.id && el.id.trim() !== "") {
+          return { type: "css", value: "#" + el.id };
+        }
+
+        if (el.name && el.name.trim() !== "") {
+          return { type: "css", value: el.tagName.toLowerCase() + "[name='" + el.name + "']" };
+        }
+
+        if (el.innerText && el.innerText.trim().length > 0 && el.innerText.length < 40) {
+          return { 
+            type: "xpath", 
+            value: "//" + el.tagName.toLowerCase() + "[contains(text(),'" + el.innerText.trim() + "')]" 
+          };
+        }
+
+        return null;
+      }
+
+      const locator = getBestLocator(element);
+      if (!locator) return;
 
       const data = {
         action: "click",
-        tag: element.tagName,
-        id: element.id || null,
-        class: element.className || null,
-        name: element.name || null,
-        text: element.innerText || null,
-        css: getCssSelector(element)
+        locatorType: locator.type,
+        locatorValue: locator.value
       };
 
       window.postMessage({ type: "AUTOMETA_RECORD", payload: data }, "*");
@@ -143,6 +164,9 @@ function generateMavenProject() {
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import java.time.Duration;
 
 public class TestCase {
 
@@ -150,13 +174,21 @@ public class TestCase {
 
         WebDriver driver = new ChromeDriver();
         driver.manage().window().maximize();
-        driver.get("YOUR_URL_HERE");
+       driver.get("${recordedUrl}");
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 `;
 
   recordedActions.forEach((action) => {
     if (action.action === "click") {
       javaCode += `
-        driver.findElement(By.cssSelector("${action.css}")).click();
+               wait.until(ExpectedConditions.elementToBeClickable(
+           ${
+             action.locatorType === "xpath"
+               ? `By.xpath("${action.locatorValue}")`
+               : `By.cssSelector("${action.locatorValue}")`
+           }
+        )).click();
 `;
     }
   });
