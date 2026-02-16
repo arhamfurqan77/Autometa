@@ -1,0 +1,101 @@
+[
+  {
+    "action": "click",
+    "tag": "INPUT",
+    "id": "usernam",
+    "class": "form-control",
+    "name": null,
+    "text": null,
+    "css": "#usernam"
+  },
+  {
+    "action": "click",
+    "tag": "INPUT",
+    "id": "pasword",
+    "class": "form-control",
+    "name": null,
+    "text": null,
+    "css": "#pasword"
+  },
+  {
+    "action": "click",
+    "tag": "BUTTON",
+    "id": "btnlogin",
+    "class": "btn btn-info",
+    "name": null,
+    "text": "Login",
+    "css": "#btnlogin"
+  },
+  {
+    "action": "click",
+    "tag": "SPAN",
+    "id": null,
+    "class": "title",
+    "name": null,
+    "text": "Recovery Officer",
+    "css": "span.title"
+  },
+  {
+    "action": "click",
+    "tag": "A",
+    "id": null,
+    "class": "ajax-link",
+    "name": null,
+    "text": "Recovery Officer",
+    "css": "a.ajax-link"
+  },
+  {
+    "action": "click",
+    "tag": "SELECT",
+    "id": "cmbsrStatus",
+    "class": "form-control",
+    "name": null,
+    "text": "All Status\nActivated\nDeactivated",
+    "css": "#cmbsrStatus"
+  },
+  {
+    "action": "click",
+    "tag": "SELECT",
+    "id": "cmbsrStatus",
+    "class": "form-control",
+    "name": null,
+    "text": "All Status\nActivated\nDeactivated",
+    "css": "#cmbsrStatus"
+  },
+  {
+    "action": "click",
+    "tag": "SPAN",
+    "id": null,
+    "class": null,
+    "name": null,
+    "text": "Action",
+    "css": "span"
+  },
+  {
+    "action": "click",
+    "tag": "A",
+    "id": null,
+    "class": null,
+    "name": null,
+    "text": "Edit",
+    "css": "a"
+  },
+  {
+    "action": "click",
+    "tag": "INPUT",
+    "id": "add",
+    "class": "form-control",
+    "name": "url",
+    "text": null,
+    "css": "#add"
+  },
+  {
+    "action": "click",
+    "tag": "DIV",
+    "id": "modal-lg",
+    "class": "modal fade",
+    "name": null,
+    "text": "Operators Details\nName\nCell/Phone #\nCnic\nAddress\nJoining date\nSalary\nstatus\nActivated\nDeactivated\nLeaving Date\nSubmit",
+    "css": "#modal-lg"
+  }
+]

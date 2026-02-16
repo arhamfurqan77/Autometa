@@ -28,6 +28,7 @@ function createMainWindow() {
 
   ipcMain.on("save-recording", () => {
     saveRecording();
+    generateJavaFile();
   });
 
   mainWindow.loadFile("index.html");
@@ -90,6 +91,48 @@ function saveRecording() {
   const filePath = path.join(__dirname, "recording.json");
   fs.writeFileSync(filePath, JSON.stringify(recordedActions, null, 2));
   console.log("Recording saved to:", filePath);
+}
+
+function generateJavaFile() {
+  const outputDir = path.join(__dirname, "generated");
+
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir);
+  }
+
+  let javaCode = `
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class TestCase {
+
+    public static void main(String[] args) {
+
+        WebDriver driver = new ChromeDriver();
+        driver.manage().window().maximize();
+        driver.get("YOUR_URL_HERE");
+
+`;
+
+  recordedActions.forEach((action) => {
+    if (action.action === "click") {
+      javaCode += `
+        driver.findElement(By.cssSelector("${action.css}")).click();
+`;
+    }
+  });
+
+  javaCode += `
+        driver.quit();
+    }
+}
+`;
+
+  const filePath = path.join(outputDir, "TestCase.java");
+  fs.writeFileSync(filePath, javaCode);
+
+  console.log("Java file generated at:", filePath);
 }
 
 app.whenReady().then(createMainWindow);
